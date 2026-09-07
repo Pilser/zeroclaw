@@ -67,6 +67,41 @@ impl NativePluginContext {
             .config
             .write()
             .map_err(|_| anyhow::anyhow!("config lock poisoned"))?;
+        // Auto-create List natural-key entries like mcp.servers.<name>.* before set_prop
+        if cfg.get_prop(path).is_err() {
+            // Try to materialize mcp.servers / other List sections via create_map_key
+            for prefix in ["mcp.servers"] {
+                if let Some(rest) = path.strip_prefix(&format!("{prefix}.")) {
+                    if let Some((name, _)) = rest.split_once('.') {
+                        if !name.is_empty() {
+                            let _ = cfg.create_map_key(prefix, name);
+                        }
+                    }
+                }
+            }
+            // Also try generic alias_refs for Map sections (providers.models, agents, etc.)
+            // Fallback: try to infer section from dotted path and create first missing key
+            if cfg.get_prop(path).is_err() {
+                let parts: Vec<&str> = path.split('.').collect();
+                if parts.len() >= 3 {
+                    // Try longest prefix that is a known List section
+                    for section in zeroclaw_config::schema::Config::map_key_sections() {
+                        if path.starts_with(&format!("{}.", section.path)) {
+                            let rest = &path[section.path.len() + 1..];
+                            if let Some(dot) = rest.find('.') {
+                                let key = &rest[..dot];
+                                if !key.is_empty()
+                                    && section.kind == zeroclaw_config::traits::MapKeyKind::List
+                                {
+                                    let _ = cfg.create_map_key(section.path, key);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         cfg.set_prop(path, value)
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         cfg.mark_dirty(path);
