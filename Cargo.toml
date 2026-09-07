@@ -220,13 +220,24 @@ arm-unknown-linux-gnueabihf = ["observability-prometheus"]
 armv7-unknown-linux-gnueabihf = ["observability-prometheus"]
 
 [features]
+# Lean Firecracker fork — stripped for vMicro swarm control.
+# Commented entries are tracked in STRIP-TRACKING.md, re-enable if cargo check red.
 default = [
     "agent-runtime",
-    "default-channels",
-    "acp-bridge",
+    # "default-channels", # stripped: keep only channel-webhook via lean
+    # "acp-bridge", # stripped: desktop ACP not needed headless
     "gateway",
-    "observability-prometheus",
+    # "observability-prometheus", # stripped: metrics not needed in VM, re-add if need
     "schema-export",
+]
+
+# Lean feature for Firecracker — use in CI: --features lean
+lean = [
+    "agent-runtime",
+    "gateway",
+    "channel-webhook",
+    "channel-filesystem",
+    "plugins-wasm-cranelift",
 ]
 
 # The core agent runtime — agent loop, tools, persistence subsystems.

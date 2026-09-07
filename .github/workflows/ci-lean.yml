@@ -1,0 +1,40 @@
+name: Lean CI — check only while stripping
+
+on:
+  push:
+    branches: [master, feat/*, lean/*]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - name: fmt
+        run: cargo fmt --all -- --check
+
+      - name: cargo check (lean)
+        run: cargo check --locked --no-default-features --features lean
+
+      # BUILD COMMENTED OUT while stripping — uncomment when STRIP-TRACKING.md REMOVED stable
+      # - name: cargo build release (linux x86_64)
+      #   run: cargo build --release --locked --no-default-features --features lean --target x86_64-unknown-linux-gnu
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: zeroclaw-linux-x86_64
+      #     path: target/x86_64-unknown-linux-gnu/release/zeroclaw
+      #     if-no-files-found: error
