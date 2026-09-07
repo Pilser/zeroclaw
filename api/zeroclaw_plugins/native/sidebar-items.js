@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["native_path_for_plugin"],"struct":["NativePluginContext","NativePluginHandle","NativePluginHost"]};
