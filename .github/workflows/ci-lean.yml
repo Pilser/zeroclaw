@@ -34,11 +34,15 @@ jobs:
       - name: cargo check (lean-native)
         run: cargo check --locked --no-default-features --features lean-native
 
-      # BUILD COMMENTED OUT while stripping — uncomment when STRIP-TRACKING.md REMOVED stable
-      # - name: cargo build release (linux x86_64)
-      #   run: cargo build --release --locked --no-default-features --features lean --target x86_64-unknown-linux-gnu
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: zeroclaw-linux-x86_64
-      #     path: target/x86_64-unknown-linux-gnu/release/zeroclaw
-      #     if-no-files-found: error
+      - name: cargo build release (linux x86_64 portable)
+        run: cargo build --release --locked --no-default-features --features lean-native --target x86_64-unknown-linux-gnu
+      - name: check binary portability
+        run: |
+          ls -lh target/x86_64-unknown-linux-gnu/release/zeroclaw
+          ldd target/x86_64-unknown-linux-gnu/release/zeroclaw || echo "static musl"
+          file target/x86_64-unknown-linux-gnu/release/zeroclaw
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zeroclaw-linux-x86_64-portable
+          path: target/x86_64-unknown-linux-gnu/release/zeroclaw
+          if-no-files-found: error
