@@ -31,6 +31,9 @@ jobs:
       - name: cargo check (lean)
         run: cargo check --locked --no-default-features --features lean
 
+      - name: cargo check (lean-native)
+        run: cargo check --locked --no-default-features --features lean-native
+
       # BUILD COMMENTED OUT while stripping — uncomment when STRIP-TRACKING.md REMOVED stable
       # - name: cargo build release (linux x86_64)
       #   run: cargo build --release --locked --no-default-features --features lean --target x86_64-unknown-linux-gnu

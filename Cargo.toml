@@ -240,6 +240,16 @@ lean = [
     "plugins-wasm-cranelift",
 ]
 
+# Firecracker native — always enabled, auto-reload, full config access via .so
+lean-native = [
+    "agent-runtime",
+    "gateway",
+    "channel-webhook",
+    "channel-filesystem",
+    "plugins-native",
+]
+plugins-native = ["zeroclaw-plugins/plugins-native"]
+
 # The core agent runtime — agent loop, tools, persistence subsystems.
 # Without this, you get the kernel: config + providers + memory + CLI chat.
 # Channels are opt-in via the lean `default-channels` bundle, `channels-full`,

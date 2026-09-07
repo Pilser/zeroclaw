@@ -8,8 +8,9 @@ repository.workspace = true
 publish = true
 
 [features]
-default = ["plugins-wit-v0"]
+default = ["plugins-wit-v0", "plugins-native"]
 plugins-wit-v0 = []
+plugins-native = ["dep:libloading", "dep:notify", "dep:notify-debouncer-mini"]
 plugins-wasmtime = [
   "dep:wasmtime",
   "dep:wasmtime-wasi",
@@ -66,6 +67,9 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "logg
 tokio-rustls = { version = "0.26.4", default-features = false, features = ["ring", "logging", "tls12"], optional = true }
 webpki-roots = { version = "1.0.6", optional = true }
 rustls-native-certs = { version = "0.8", optional = true }
+libloading = { version = "0.8", optional = true }
+notify = { version = "6", optional = true }
+notify-debouncer-mini = { version = "0.4", optional = true }
 
 [dev-dependencies]
 rcgen = "0.13"

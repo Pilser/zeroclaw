@@ -8978,9 +8978,11 @@ fn default_max_active_plugin_instances() -> usize {
 impl Default for PluginsConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
+            // Native plugins are always enabled in Firecracker fork —
+            // VM isolation makes WASM sandbox redundant. See crates/zeroclaw-plugins/src/native.rs
+            enabled: true,
             plugins_dir: default_plugins_dir(),
-            auto_discover: false,
+            auto_discover: true,
             max_active_instances: default_max_active_plugin_instances(),
             security: PluginSecurityConfig::default(),
             limits: PluginLimitsConfig::default(),

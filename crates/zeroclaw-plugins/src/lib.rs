@@ -34,6 +34,9 @@ pub mod wasm_tool;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+#[cfg(feature = "plugins-native")]
+pub mod native;
+
 /// A plugin's declared manifest (loaded from manifest.toml alongside the .wasm).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginManifest {
@@ -50,6 +53,11 @@ pub struct PluginManifest {
     /// for skill-only plugins, which carry no WASM payload.
     #[serde(default)]
     pub wasm_path: Option<String>,
+    /// Path to the native .so file (relative to manifest).
+    /// When set, the plugin is loaded as a native Rust cdylib via dlopen
+    /// instead of WASM. Firecracker VM isolation makes this safe.
+    #[serde(default)]
+    pub native_path: Option<String>,
     /// Capabilities this plugin provides
     pub capabilities: Vec<PluginCapability>,
     /// Permissions this plugin requests
