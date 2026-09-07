@@ -17,8 +17,8 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 use std::time::SystemTime;
 
+use crate::PluginManifest;
 use crate::error::PluginError;
-use crate::{PluginCapability, PluginManifest};
 
 // ── Native plugin manifest extension ──────────────────────────────
 
@@ -80,36 +80,33 @@ impl NativePluginContext {
             .config
             .read()
             .map_err(|_| anyhow::anyhow!("config lock poisoned"))?;
-        let path = cfg.config_path.clone();
+        let _path = cfg.config_path.clone();
         drop(cfg);
         // Use blocking runtime to save
         let handle = tokio::runtime::Handle::try_current();
         if let Ok(h) = handle {
             let cfg_clone = Arc::clone(&self.config);
-            h.block_on(async move {
+            return h.block_on(async move {
                 let mut cfg = cfg_clone.write().unwrap();
-                // Use try to avoid panic
-                let res = cfg.save_dirty().await;
-                res.map_err(|e| anyhow::anyhow!(e.to_string()))
-            })
-        } else {
-            // No runtime — spawn one
-            let cfg_clone = Arc::clone(&self.config);
-            std::thread::spawn(move || {
-                let rt = tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                    .unwrap();
-                rt.block_on(async move {
-                    let mut cfg = cfg_clone.write().unwrap();
-                    let _ = cfg.save_dirty().await;
-                });
-            })
-            .join()
-            .map_err(|_| anyhow::anyhow!("save thread panicked"))?;
-            Ok(())
+                cfg.save_dirty()
+                    .await
+                    .map_err(|e| anyhow::anyhow!(e.to_string()))
+            });
         }
-        let _ = path;
+        // No runtime — spawn one
+        let cfg_clone = Arc::clone(&self.config);
+        std::thread::spawn(move || {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
+            rt.block_on(async move {
+                let mut cfg = cfg_clone.write().unwrap();
+                let _ = cfg.save_dirty().await;
+            });
+        })
+        .join()
+        .map_err(|_| anyhow::anyhow!("save thread panicked"))?;
         Ok(())
     }
 
@@ -306,16 +303,11 @@ impl NativePluginHost {
     fn start_watcher(&mut self) -> Result<(), PluginError> {
         use notify::Watcher;
         let dir = self.plugins_dir.clone();
-        // Use debouncer for coalescing rapid writes
-        // For now, simple watcher that triggers discover on next reload_if_changed
-        // Actual async watch is handled via polling in reload_if_changed; this
-        // keeps the watcher alive to receive events.
         let mut watcher = notify::recommended_watcher(move |res: Result<notify::Event, _>| {
             if let Ok(event) = res {
                 let _ = event;
-                // Event received — next reload_if_changed will pick it up
             }
-            let _ = dir;
+            let _ = &dir;
         })
         .map_err(|e| {
             PluginError::Io(std::io::Error::new(
@@ -324,7 +316,7 @@ impl NativePluginHost {
             ))
         })?;
         if self.plugins_dir.exists() {
-            let _ = watcher.watch(&self.plugins_dir, notify::Recursive::Yes);
+            let _ = watcher.watch(&self.plugins_dir, notify::RecursiveMode::Recursive);
         }
         self._watcher = Some(watcher);
         Ok(())

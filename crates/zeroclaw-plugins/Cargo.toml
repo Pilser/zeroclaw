@@ -10,7 +10,7 @@ publish = true
 [features]
 default = ["plugins-wit-v0", "plugins-native"]
 plugins-wit-v0 = []
-plugins-native = ["dep:libloading", "dep:notify", "dep:notify-debouncer-mini"]
+plugins-native = ["dep:libloading", "dep:notify", "dep:notify-debouncer-mini", "dep:zeroclaw-config"]
 plugins-wasmtime = [
   "dep:wasmtime",
   "dep:wasmtime-wasi",
@@ -37,6 +37,7 @@ plugins-wasm-pulley = ["plugins-wasmtime", "wasmtime/pulley"]
 zeroclaw-log.workspace = true
 zeroclaw-api.workspace = true
 zeroclaw-infra.workspace = true
+zeroclaw-config = { workspace = true, optional = true }
 anyhow = "1.0"
 async-trait = "0.1"
 base64 = "0.22"
