@@ -363,6 +363,22 @@ impl ScopedToolRegistry {
                 // Deferred stubs derive from the same `tool_names()` call, so
                 // one extension covers eager, deferred, and later activations.
                 mcp_tool_names.extend(registry.tool_names());
+                // Visibility: which tools actually registered (names tell
+                // whether a server dial succeeded but yielded nothing).
+                {
+                    let mut names: Vec<&str> = mcp_tool_names.iter().map(String::as_str).collect();
+                    names.sort_unstable();
+                    ::zeroclaw_log::record!(
+                        INFO,
+                        ::zeroclaw_log::Event::new(module_path!(), ::zeroclaw_log::Action::Load)
+                            .with_category(::zeroclaw_log::EventCategory::Tool),
+                        &format!(
+                            "MCP tools registered ({}): {}",
+                            names.len(),
+                            names.join(", ")
+                        )
+                    );
+                }
                 // Elevation arcs exist only to resolve skill-declared MCP
                 // elevation in step 5; skip the collection when no skills are
                 // registered through this assembly.
